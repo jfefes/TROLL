@@ -6,16 +6,15 @@ import requests as request
 
 class BaseOrkRequest():
     def __init__(self, params=None):
-        self.path = "https://amtgard.com/ork/orkservice/Json/index.php"
         self.service_name = "{}Service".format(params["service_name"])
         self.callname = "{}/{}".format(self.service_name, self.call_name)
 
     def _send_request(self, access_token=None, params={}):
-        if access_token is not None:
-            # TODO: Validate token
-            params["access_token"] = access_token
+        # if access_token is not None:
+        #     # TODO: Validate token
+        #     params["access_token"] = access_token
         # TODO: Inspect request and return either instance of response or error
-        return request.get(self.path, self.params)
+        return request.get("https://amtgard.com/ork/orkservice/Json/index.php", self.params)
 
 class OrkApiError():
     def __init__(self, path, body):
@@ -25,13 +24,15 @@ class OrkApiError():
 
 class OrkSearchRequest(BaseOrkRequest):
     def __init__(self, kingdom=None, park=None, player=None):
-        params = {}
+        self.params = {}
         if player is not None:
             assert park is not None
             assert kingdom is not None
-            params["search"] = player
-            params["park"] = park
-            params["kingdom"] = kingdom
+            self.params["search"] = player
+            self.params["park_id"] = park
+            self.params["kingdom_id"] = kingdom
+            self.params["call"] = "SearchService/Player"
+            self.params["type"] = "all"
 
 class OrkAuthRequest(BaseOrkRequest):
     def __init__(self, player_id=None, player_password=None, player_token=None):
