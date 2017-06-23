@@ -4,24 +4,54 @@ from __future__ import unicode_literals
 from django.db import models
 import requests as request
 
-# Create your models here.
-class OrkRequest():
-    def __init__():
-        search_url = "https://amtgard.com/ork/orkservice/Json/index.php"
+class BaseOrkRequest():
+    def __init__(self, params=None):
+        self.path = "https://amtgard.com/ork/orkservice/Json/index.php"
+        self.service_name = "{}Service".format(params["service_name"])
+        self.callname = "{}/{}".format(self.service_name, self.call_name)
 
-        CALLTYPES = {
-            "Search":
-                ["Player"],
-            "Authorization":
-                ["GetAuthorizations"]
+    def _send_request(self, access_token=None, params={}):
+        if access_token is not None:
+            # TODO: Validate token
+            params["access_token"] = access_token
+        # TODO: Inspect request and return either instance of response or error
+        return request.get(self.path, self.params)
+
+class OrkApiError():
+    def __init__(self, path, body):
+        self.path = path
+        self.error_code = ""
+        self.error_text = body.text
+
+class OrkSearchRequest(BaseOrkRequest):
+    def __init__(self, kingdom=None, park=None, player=None):
+        params = {}
+        if player is not None:
+            assert park is not None
+            assert kingdom is not None
+            params["search"] = player
+            params["park"] = park
+            params["kingdom"] = kingdom
+
+class OrkAuthRequest(BaseOrkRequest):
+    def __init__(self, player_id=None, player_password=None, player_token=None):
+        self.player = {
+            "player_id": player_id,
+            "player_password": player_password,
+            "player_token": player_token
         }
-        assert call_type in CALLTYPES
-        assert call_scope in CALLTYPES[call_type]
+        if player_token is not None:
+            validate_or_create_token(self, player)
 
-        params["call"] = "{}Service/{}".format(call_type, call_scope)
+    def validate_or_create_token(self, player):
+        # TODO: Validate token, or get a new one.
+        pass
 
-
-class OrkResponse():
-    def __init__():
-        request.get(ork_request.search_url, ork_request.params)
-        response_json = self.json
+class OrkAttendanceRequest(BaseOrkRequest):
+    def __init__(self):
+        self.authorized_user = ""
+        self.player = ""
+        self.player_class = ""
+        self.date = ""
+        self.park = ""
+        self.kingdom = ""
